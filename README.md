@@ -13,6 +13,13 @@
 // edit by akuan begin >>>>>> [description why]<br>
 // edit end <<<<<<<br>
 
+# Android:
+亲测，如下本地安卓环境是可编译、安装成功的：<br>
+- CMAKE_PREFIX_PATH:STRING = D:/Android/Sdk/**ndk/26.1.10909125**/toolchains/llvm/prebuilt/windows-x86_64<br>
+- ANDROID_PLATFORM:STRING = **android-30**<br>
+- ANDROID_ABI:STRING = **arm64-v8a**<br>
+
+
 [![Build Status](https://travis-ci.org/openscenegraph/OpenSceneGraph.svg?branch=master)](https://travis-ci.org/openscenegraph/OpenSceneGraph)
 [![Coverity Status](https://scan.coverity.com/projects/9159/badge.svg)](https://scan.coverity.com/projects/openscenegraph-openscenegraph)
 [![Documentation](https://codedocs.xyz/openscenegraph/OpenSceneGraph.svg)](https://codedocs.xyz/openscenegraph/OpenSceneGraph/)
