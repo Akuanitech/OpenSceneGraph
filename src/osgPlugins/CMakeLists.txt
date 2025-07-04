@@ -112,7 +112,7 @@ if(ZLIB_FOUND)
 else()
     message(WARNING "zlib is not found!")
 endif()
-# add by akuan end <<<<<<
+# add end <<<<<<
 
 IF(JPEG_FOUND)
     ADD_PLUGIN_DIRECTORY(jpeg)
