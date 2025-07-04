@@ -15,6 +15,13 @@ set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
 CMAKE_MINIMUM_REQUIRED(VERSION 2.8.0 FATAL_ERROR)
 
+########################### GLES/GL Version ##############################
+# GLES 1.x	GL 1.x                  Fixed Pipeline
+# GLES 2.0	GL 2.x                  Program Shader, support vertex-shader fragment-shader
+# GLES 3.0	GL 3.x + some GL 4.x	Enhanced Render Feature
+# GLES 3.1	GL 4.3	                Support Calculation-Shader
+# GLES 3.2	GL 4.5	                Support More Advanced Render Control
+
 if(COMMAND cmake_policy)
     # Works around warnings libraries linked against that don't
     # have absolute paths (e.g. -lpthreads)
@@ -95,7 +102,14 @@ ELSEIF(APPLE)
         ENDIF()
 
         # Set macOS architectures for Universal Binaries.
-        IF(OSG_OSX_VERSION VERSION_GREATER_EQUAL 10.14)
+        IF(OSG_OSX_VERSION VERSION_GREATER_EQUAL 10.15)
+            # x86_64 only (Apple Silicon can add extra 'arm64')
+            SET(CMAKE_OSX_ARCHITECTURES "x86_64" CACHE STRING "Build architectures for OSX")
+            SET(CMAKE_OSX_DEPLOYMENT_TARGET "10.15" CACHE STRING "Target OSX version")
+            # force to use C++17 and libc++
+            SET(CMAKE_XCODE_ATTRIBUTE_CLANG_CXX_LANGUAGE_STANDARD "c++17")
+            SET(CMAKE_XCODE_ATTRIBUTE_CLANG_CXX_LIBRARY "libc++")
+        ELSEIF(OSG_OSX_VERSION VERSION_GREATER_EQUAL 10.14)
             # x86_64 only
             SET(CMAKE_OSX_ARCHITECTURES "x86_64" CACHE STRING "Build architectures for OSX")
             SET(CMAKE_OSX_DEPLOYMENT_TARGET "10.9" CACHE STRING "Target OSX version")
@@ -285,17 +299,13 @@ ELSE()
     # Non-Apple: Find OpenGL
     
     # Support EGL on Windows
-    IF(OSG_WINDOWING_SYSTEM STREQUAL "Win32" AND (OSG_GLES2_AVAILABLE OR OSG_GLES3_AVAILABLE ) )
+    IF(OSG_WINDOWING_SYSTEM STREQUAL "Win32" AND OSG_GLES3_AVAILABLE)
         FIND_PACKAGE(EGL)
     
         set(OSG_USE_EGL ON)
 
-        IF(OSG_GLES3_AVAILABLE)
-            FIND_PATH(OPENGL_INCLUDE_DIR GLES3/gl3.h)
-        ENDIF()
-        IF(OSG_GLES2_AVAILABLE)
-            FIND_PATH(OPENGL_INCLUDE_DIR GLES2/gl2.h)
-        ENDIF()
+        FIND_PATH(OPENGL_INCLUDE_DIR GLES3/gl3.h)
+
         FIND_LIBRARY(OPENGL_gl_LIBRARY "libGLESv2.dll")
     ELSE()
         # Non-Apple: Find OpenGL
@@ -454,7 +464,7 @@ ENDIF(WIN32 AND NOT ANDROID)
 
 OPTION(OSG_NOTIFY_DISABLED "Set to ON to build OpenSceneGraph with the notify() disabled." OFF)
 
-OPTION(OSG_USE_DEPRECATED_API "Set to ON to build OpenSceneGraph with the OSG_USE_DEPREFATED_API #define enabled to allow access to deprecated APIs ." ON)
+OPTION(OSG_USE_DEPRECATED_API "Set to ON to build OpenSceneGraph with the OSG_USE_DEPREFATED_API #define enabled to allow access to deprecated APIs ." OFF)
 
 OPTION(OSG_USE_FLOAT_MATRIX "Set to ON to build OpenSceneGraph with float Matrix instead of double." OFF)
 MARK_AS_ADVANCED(OSG_USE_FLOAT_MATRIX)
@@ -472,7 +482,7 @@ OPTION(OSG_USE_FLOAT_QUAT "Set to ON to build OpenSceneGraph with float Quat ins
 MARK_AS_ADVANCED(OSG_USE_FLOAT_QUAT)
 
 IF (WIN32)
-    OPTION(OSG_USE_UTF8_FILENAME "Set to ON to use a UTF8 locale for filenames instead of the default locale." OFF)
+    OPTION(OSG_USE_UTF8_FILENAME "Set to ON to use a UTF8 locale for filenames instead of the default locale." ON)
     MARK_AS_ADVANCED(OSG_USE_UTF8_FILENAME)
 ENDIF()
 
@@ -486,46 +496,21 @@ OPTION(OSG_USE_REF_PTR_SAFE_DEREFERENCE "Set to ON to throw an exception wheneve
 OPTION(OSG_ENVVAR_SUPPORTED "Set to ON to build OpenSceneGraph with the #define OSG_ENVVAR_SUPPORTED, found in include/osg/Config, to enable use of getenv() related functions." ON)
 
 
-
 # Map the OPENGL_PROFILE to OSG_GL*_AVAILABLE settings
-SET(OPENGL_PROFILE "GL2" CACHE STRING "OpenGL Profile to use, choose from GL1, GL2, GL3, GLES1, GLES2, GLES3")
-
-IF ((OPENGL_PROFILE STREQUAL "GL1") OR (OPENGL_PROFILE STREQUAL "GL2"))
-    OPTION(OSG_GL1_AVAILABLE "Set to OFF to disable use of OpenGL 1.x functions library." ON )
-ELSE()
-    OPTION(OSG_GL1_AVAILABLE "Set to OFF to disable use of OpenGL 1.x functions library." OFF )
-ENDIF()
-
-IF ((OPENGL_PROFILE STREQUAL "GL2"))
-    OPTION(OSG_GL2_AVAILABLE "Set to OFF to disable use of OpenGL 2.x functions library." ON )
-ELSE()
-    OPTION(OSG_GL2_AVAILABLE "Set to OFF to disable use of OpenGL 2.x functions library." OFF )
-ENDIF()
+SET(OPENGL_PROFILE "GL3" CACHE STRING "OpenGL Profile to use, choose from GL3, GLES3")
 
 IF ((OPENGL_PROFILE STREQUAL "GL3") OR (OPENGL_PROFILE STREQUAL "GLCORE"))
-    OPTION(OSG_GL3_AVAILABLE "Set to OFF to disable use of OpenGL 3.x functions library." ON )
+    OPTION(OSG_GL3_AVAILABLE "Set to OFF to disable use of OpenGL 4.x functions library." ON )
     if(APPLE)
         add_definitions(-DGL_DO_NOT_WARN_IF_MULTI_GL_VERSION_HEADERS_INCLUDED)
     endif()
 ELSE()
-    OPTION(OSG_GL3_AVAILABLE "Set to OFF to disable use of OpenGL 3.x functions library." OFF )
+    OPTION(OSG_GL3_AVAILABLE "Set to OFF to disable use of OpenGL 4.x functions library." OFF )
 ENDIF()
 
-IF ((OPENGL_PROFILE STREQUAL "GLES1"))
-    OPTION(OSG_GLES1_AVAILABLE "Set to OFF to disable use of OpenGL ES 1.x functions library." ON )
-ELSE()
-    OPTION(OSG_GLES1_AVAILABLE "Set to OFF to disable use of OpenGL ES 1.x functions library." OFF )
-ENDIF()
-
-IF ((OPENGL_PROFILE STREQUAL "GLES2"))
-    OPTION(OSG_GLES2_AVAILABLE "Set to OFF to disable use of OpenGL ES 2.x functions library." ON )
-ELSEIF ((OPENGL_PROFILE STREQUAL "GLES3"))
-    OPTION(OSG_GLES3_AVAILABLE "Set to OFF to disable use of OpenGL ES 3.x functions library." ON )
-ELSEIF ((OPENGL_PROFILE STREQUAL "GLES2+GLES3"))
-    OPTION(OSG_GLES2_AVAILABLE "Set to OFF to disable use of OpenGL ES 2.x functions library." ON )
+IF ((OPENGL_PROFILE STREQUAL "GLES3"))
     OPTION(OSG_GLES3_AVAILABLE "Set to OFF to disable use of OpenGL ES 3.x functions library." ON )
 ELSE()
-    OPTION(OSG_GLES2_AVAILABLE "Set to OFF to disable use of OpenGL ES 2.x functions library." OFF )
     OPTION(OSG_GLES3_AVAILABLE "Set to OFF to disable use of OpenGL ES 3.x functions library." OFF )
 ENDIF()
 
@@ -538,39 +523,16 @@ ELSE ()
     OPTION(OSG_TEXT_USE_FONTCONFIG "Set to OFF to disable attempt to use FontConfig in osgText." ON)
 ENDIF ()
 
-# Map the OSG_GL*_AVAILABLE settings to OSG_GL_* settings
-IF (OSG_GLES2_AVAILABLE OR OSG_GLES3_AVAILABLE OR OSG_GL3_AVAILABLE)
-    OPTION(OSG_GL_DISPLAYLISTS_AVAILABLE "Set to OFF to disable use of OpenGL display lists." OFF)
-    OPTION(OSG_GL_MATRICES_AVAILABLE "Set to OFF to disable use of OpenGL built-in matrices." OFF)
-    OPTION(OSG_GL_VERTEX_FUNCS_AVAILABLE "Set to OFF to disable use of OpenGL vertex functions such as glVertex/glColor etc." OFF)
-    OPTION(OSG_GL_VERTEX_ARRAY_FUNCS_AVAILABLE "Set to OFF to disable use of OpenGL vertex functions such as glVertexPointer/glColorPointer etc." OFF)
-    OPTION(OSG_GL_FIXED_FUNCTION_AVAILABLE "Set to OFF to disable use of OpenGL fixed function pipeline." OFF)
-ELSEIF (OSG_GLES1_AVAILABLE)
-    OPTION(OSG_GL_DISPLAYLISTS_AVAILABLE "Set to OFF to disable use of OpenGL display lists." OFF)
-    OPTION(OSG_GL_MATRICES_AVAILABLE "Set to OFF to disable use of OpenGL built-in matrices." ON)
-    OPTION(OSG_GL_VERTEX_FUNCS_AVAILABLE "Set to OFF to disable use of OpenGL vertex functions such as glVertex/glColor etc." ON)
-    OPTION(OSG_GL_VERTEX_ARRAY_FUNCS_AVAILABLE "Set to OFF to disable use of OpenGL vertex functions such as glVertexPointer/glColorPointer etc." ON)
-    OPTION(OSG_GL_FIXED_FUNCTION_AVAILABLE "Set to OFF to disable use of OpenGL fixed function pipeline." ON)
-ELSE()
-    OPTION(OSG_GL_DISPLAYLISTS_AVAILABLE "Set to OFF to disable use of OpenGL display lists." ON)
-    OPTION(OSG_GL_MATRICES_AVAILABLE "Set to OFF to disable use of OpenGL built-in matrices." ON)
-    OPTION(OSG_GL_VERTEX_FUNCS_AVAILABLE "Set to OFF to disable use of OpenGL vertex functions such as glVertex/glColor etc." ON)
-    OPTION(OSG_GL_VERTEX_ARRAY_FUNCS_AVAILABLE "Set to OFF to disable use of OpenGL vertex functions such as glVertexPointer/glColorPointer etc." ON)
-    OPTION(OSG_GL_FIXED_FUNCTION_AVAILABLE "Set to OFF to disable use of OpenGL fixed function pipeline." ON)
-ENDIF()
+IF (OSG_GLES3_AVAILABLE)
 
-IF (OSG_GLES1_AVAILABLE OR OSG_GLES2_AVAILABLE OR OSG_GLES3_AVAILABLE)
-    OPTION(OSG_CPP_EXCEPTIONS_AVAILABLE "Set to OFF to disable compile of OSG components that use C++ exceptions." OFF)
-ELSE()
+    SET(DEFAULT_GL_CONTEXT_VERSION "3.2")
     OPTION(OSG_CPP_EXCEPTIONS_AVAILABLE "Set to OFF to disable compile of OSG components that use C++ exceptions." ON)
-ENDIF()
-
+ENDIF ()
 
 # Map the OSG_GL*_AVAILABLE settings to OpenGL header settings
-SET(DEFAULT_GL_CONTEXT_VERSION "1.0")
 IF (OSG_GL3_AVAILABLE)
 
-    SET(DEFAULT_GL_CONTEXT_VERSION "3.3")
+    SET(DEFAULT_GL_CONTEXT_VERSION "4.6")
 
     IF (APPLE)
         SET(OPENGL_HEADER1 "#include <OpenGL/gl.h>" CACHE STRING "#include<> line for OpenGL Header")
@@ -588,22 +550,6 @@ IF (OSG_GL3_AVAILABLE)
             SET(OPENGL_HEADER2 "" CACHE STRING "#include<> line for additional OpenGL Headers if required")
         ENDIF()
 
-    ENDIF()
-ELSEIF(OSG_GLES1_AVAILABLE)
-    IF (APPLE AND NOT ANDROID)
-        SET(OPENGL_HEADER1 "#include \"TargetConditionals.h\"" CACHE STRING "#include<> line for OpenGL Header")
-        SET(OPENGL_HEADER2 "#include <OpenGLES/ES1/gl.h>" CACHE STRING "#include<> line for additional OpenGL Headers if required")
-    ELSE()
-        SET(OPENGL_HEADER1 "#include <GLES/gl.h>" CACHE STRING "#include<> line for OpenGL Header")
-        SET(OPENGL_HEADER2 "" CACHE STRING "#include<> line for additional OpenGL Headers if required")
-    ENDIF()
-ELSEIF(OSG_GLES2_AVAILABLE)
-    IF (APPLE AND NOT ANDROID)
-        SET(OPENGL_HEADER1 "#include \"TargetConditionals.h\"" CACHE STRING "#include<> line for OpenGL Header")
-        SET(OPENGL_HEADER2 "#include <OpenGLES/ES2/gl.h>" CACHE STRING "#include<> line for additional OpenGL Headers if required")
-    ELSE()
-        SET(OPENGL_HEADER1 "#include <GLES2/gl2.h>" CACHE STRING "#include<> line for OpenGL Header")
-        SET(OPENGL_HEADER2 "" CACHE STRING "#include<> line for additional OpenGL Headers if required")
     ENDIF()
 ELSEIF(OSG_GLES3_AVAILABLE)
     IF (APPLE AND NOT ANDROID)
@@ -625,34 +571,10 @@ ENDIF()
 
 SET(OSG_GL_CONTEXT_VERSION ${DEFAULT_GL_CONTEXT_VERSION} CACHE STRING "GL Context String to pass when creaing graphics contexts")
 
-IF (OSG_GL1_AVAILABLE)
-    SET(OSG_GL1_FEATURES 1)
-ELSE()
-    SET(OSG_GL1_FEATURES 0)
-ENDIF()
-
-IF (OSG_GL2_AVAILABLE)
-    SET(OSG_GL2_FEATURES 1)
-ELSE()
-    SET(OSG_GL2_FEATURES 0)
-ENDIF()
-
 IF (OSG_GL3_AVAILABLE)
     SET(OSG_GL3_FEATURES 1)
 ELSE()
     SET(OSG_GL3_FEATURES 0)
-ENDIF()
-
-IF (OSG_GLES1_AVAILABLE)
-    SET(OSG_GLES1_FEATURES 1)
-ELSE()
-    SET(OSG_GLES1_FEATURES 0)
-ENDIF()
-
-IF (OSG_GLES2_AVAILABLE)
-    SET(OSG_GLES2_FEATURES 1)
-ELSE()
-    SET(OSG_GLES2_FEATURES 0)
 ENDIF()
 
 IF (OSG_GLES3_AVAILABLE)
@@ -662,26 +584,12 @@ ELSE()
 ENDIF()
 
 IF(ANDROID)
-    IF(OSG_GLES1_AVAILABLE)
-        FIND_PATH(OPENGL_INCLUDE_DIR GLES/gl.h
-              PATHS
-              ${ANDROID_SYSROOT}/usr/include)
-        FIND_LIBRARY(OPENGL_gl_LIBRARY  GLESv1_CM
-                 PATHS
-                     ${ANDROID_SYSROOT}/usr/lib)
-    ELSEIF(OSG_GLES2_AVAILABLE)
-        FIND_PATH(OPENGL_INCLUDE_DIR GLES2/gl2.h
-              PATHS
-              ${ANDROID_SYSROOT}/usr/include)
-        FIND_LIBRARY(OPENGL_gl_LIBRARY  GLESv2
-                 PATHS
-                     ${ANDROID_SYSROOT}/usr/lib)
-    ELSEIF(OSG_GLES3_AVAILABLE)
+    IF(OSG_GLES3_AVAILABLE)
         FIND_PATH(OPENGL_INCLUDE_DIR GLES3/gl3.h
-              PATHS
-              ${ANDROID_SYSROOT}/usr/include)
+                  PATHS
+                  ${ANDROID_SYSROOT}/usr/include)
         FIND_LIBRARY(OPENGL_gl_LIBRARY  GLESv3
-                 PATHS
+                     PATHS
                      ${ANDROID_SYSROOT}/usr/lib)
     ENDIF()
 ENDIF()
@@ -1114,13 +1022,14 @@ ELSEIF(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
     SET(OSG_AGGRESSIVE_WARNING_FLAGS  -Wall -Wparentheses -Wno-long-long -Wno-import -pedantic -Wreturn-type -Wmissing-braces -Wunknown-pragmas -Wunused -Wno-overloaded-virtual)
 
     IF (APPLE)
-        SET(OSG_CXX_LANGUAGE_STANDARD "C++11" CACHE STRING "set the c++ language standard (C++98 / GNU++98 / C++11) for OSG" )
+        SET(OSG_CXX_LANGUAGE_STANDARD "C++11" CACHE STRING "set the c++ language standard (C++98 / GNU++98 / C++11 / C++17) for OSG" )
         MARK_AS_ADVANCED(OSG_CXX_LANGUAGE_STANDARD)
 
         # remove existing flags
         REMOVE_CXX_FLAG(-std=c++98)
         REMOVE_CXX_FLAG(-std=gnu++98)
         REMOVE_CXX_FLAG(-std=c++11)
+        REMOVE_CXX_FLAG(-std=c++17)
         REMOVE_CXX_FLAG(-stdlib=libstdc++)
         REMOVE_CXX_FLAG(-stdlib=libc++)
 
@@ -1132,7 +1041,16 @@ ELSEIF(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
             set(CMAKE_XCODE_ATTRIBUTE_CLANG_CXX_LANGUAGE_STANDARD "gnu++98")
             set(CMAKE_XCODE_ATTRIBUTE_CLANG_CXX_LIBRARY "libstdc++")
             set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++98 -stdlib=libstdc++")
+        ELSEIF(${OSG_CXX_LANGUAGE_STANDARD} STREQUAL "c++11" OR ${OSG_CXX_LANGUAGE_STANDARD} STREQUAL "C++11")
+            set(CMAKE_XCODE_ATTRIBUTE_CLANG_CXX_LANGUAGE_STANDARD "c++11")
+            set(CMAKE_XCODE_ATTRIBUTE_CLANG_CXX_LIBRARY "libc++")
+            set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -stdlib=libc++")
+        ELSEIF(${OSG_CXX_LANGUAGE_STANDARD} STREQUAL "c++17" OR ${OSG_CXX_LANGUAGE_STANDARD} STREQUAL "C++17")
+            set(CMAKE_XCODE_ATTRIBUTE_CLANG_CXX_LANGUAGE_STANDARD "c++17")
+            set(CMAKE_XCODE_ATTRIBUTE_CLANG_CXX_LIBRARY "libc++")
+            set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -stdlib=libc++")
         ELSE()
+            # Default to C++11 if unknown standard is specified
             set(CMAKE_XCODE_ATTRIBUTE_CLANG_CXX_LANGUAGE_STANDARD "c++11")
             set(CMAKE_XCODE_ATTRIBUTE_CLANG_CXX_LIBRARY "libc++")
             set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -stdlib=libc++")
