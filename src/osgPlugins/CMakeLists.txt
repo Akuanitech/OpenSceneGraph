@@ -99,6 +99,21 @@ ADD_PLUGIN_DIRECTORY(dot)
 ADD_PLUGIN_DIRECTORY(vtf)
 ADD_PLUGIN_DIRECTORY(ktx)
 
+# add by akuan begin >>>>>> print message to make it more clearly checking 'zlib' standalone
+if(NOT DEFINED ZLIB_FOUND)
+    if(ZLIB_INCLUDE_DIR AND ZLIB_LIBRARIES)
+        set(ZLIB_FOUND TRUE)
+    else()
+        set(ZLIB_FOUND FALSE)
+    endif()
+endif()
+if(ZLIB_FOUND)
+    message(STATUS "zlib is found!")
+else()
+    message(WARNING "zlib is not found!")
+endif()
+# add by akuan end <<<<<<
+
 IF(JPEG_FOUND)
     ADD_PLUGIN_DIRECTORY(jpeg)
 ENDIF()
