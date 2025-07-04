@@ -77,7 +77,12 @@ inline OSGA_Archive::pos_type ARCHIVE_POS( const std::streampos & pos )
 #else // older Dinkumware (eg: one included in Win Server 2003 Platform SDK )
 	fpos_t position = pos.get_fpos_t();
 #endif
-    std::streamoff offset = pos.operator std::streamoff( ) - _FPOSOFF( position );
+    // comment by akuan >>>>>> ['_FPOSOFF' is a Microsoft specific macro, cross platform compatibility issues]
+    //std::streamoff offset = pos.operator std::streamoff( ) - _FPOSOFF( position );
+    // comment end
+    // add by akuan >>>>>> [make cross platform compatible]
+      std::streamoff offset = static_cast<std::streamoff>(pos) - static_cast<std::streamoff>(position);
+    // add end
 
     return OSGA_Archive::pos_type( position + offset );
 }
