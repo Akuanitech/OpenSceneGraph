@@ -34,7 +34,7 @@ FOREACH( mylibfolder
 
 ENDFOREACH()
 
-OPTION(BUILD_OSG_DEPRECATED_SERIALIZERS "Build deprecated .osg serializers" ON)
+OPTION(BUILD_OSG_DEPRECATED_SERIALIZERS "Build deprecated .osg serializers" OFF)
 
 if(BUILD_OSG_DEPRECATED_SERIALIZERS)
     ADD_SUBDIRECTORY(osgWrappers/deprecated-dotosg)
