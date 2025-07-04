@@ -832,9 +832,16 @@ YY_MALLOC_DECL
 
 YY_DECL
 	{
-	register yy_state_type yy_current_state;
-	register char *yy_cp, *yy_bp;
-	register int yy_act;
+	// comment by akuan begin >>>>>> [keyword 'register' was deprecated in C++11, in C++17 keyword 'register' was removed]
+	/*register yy_state_type yy_current_state;
+	  register char *yy_cp, *yy_bp;
+	  register int yy_act;*/
+	// comment end <<<<<<
+	// add by akuan begin >>>>>> [remove invalid keyword]
+	yy_state_type yy_current_state;
+	char *yy_cp, *yy_bp;
+	int yy_act;
+	// add end <<<<<<
 
 #line 35 ".././ConfigLexer.l"
 
