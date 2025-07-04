@@ -5,7 +5,7 @@
  * $Header: /cvs/Producer/Producer/src/ConfigLexer.cpp,v 1.23 2006/09/06 22:56:30 don Exp $
  */
 
-// edit by akuan begin >>>>>> [keyword 'register' was deprecated in C++11, in C++17 keyword 'register' was removed!]
+// edit by akuan begin >>>>>> [keyword 'register' was deprecated in C++11, in C++17 keyword 'register' was removed]
 // so, replace all 'register ' to Empty in this file. result: 20 'register' words removed.
 // edit end <<<<<<
 
