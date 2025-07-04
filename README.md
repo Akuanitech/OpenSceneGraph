@@ -1,12 +1,12 @@
 # forked from openscenegraph/OpenSceneGraph
 
-- If I add codes, surround by:
-// add by akuan begin >>>>>> [description why]
-// origin codes...
-// add end <<<<<<
+- If I add codes, surround by:<br>
+// add by akuan begin >>>>>> [description why]<br>
+// origin codes...<br>
+// add end <<<<<<<br>
 
-- If I comment codes, surround by:
-// comment by akuan begin >>>>>> [description why]
+- If I comment codes, surround by:<br>
+// comment by akuan begin >>>>>> [description why]<br>
 // comment end <<<<<<
 
 [![Build Status](https://travis-ci.org/openscenegraph/OpenSceneGraph.svg?branch=master)](https://travis-ci.org/openscenegraph/OpenSceneGraph)
