@@ -56,6 +56,10 @@ PROJECT(OpenSceneGraph)
 # value is needed to find the correct version of OpenGL (X11 or Cocoa).
 
 IF(ANDROID)
+    # add by akuan begin >>>>>>
+    set(ANDROID_PLATFORM "android-30" CACHE STRING "android api level, format:'android-API_VERSION'")
+    set(ANDROID_ABI "arm64-v8a" CACHE STRING "CPU architecture")
+    # add end
     SET(OSG_WINDOWING_SYSTEM "None" CACHE STRING "Windowing system type for graphics window creation; options: None.")
 ELSEIF(WIN32 OR MINGW)
     SET(OSG_WINDOWING_SYSTEM "Win32" CACHE STRING "Windowing system type for graphics window creation; options: Win32 or None.")
@@ -454,7 +458,7 @@ ENDIF(WIN32 AND NOT ANDROID)
 
 OPTION(OSG_NOTIFY_DISABLED "Set to ON to build OpenSceneGraph with the notify() disabled." OFF)
 
-OPTION(OSG_USE_DEPRECATED_API "Set to ON to build OpenSceneGraph with the OSG_USE_DEPREFATED_API #define enabled to allow access to deprecated APIs ." ON)
+OPTION(OSG_USE_DEPRECATED_API "Set to ON to build OpenSceneGraph with the OSG_USE_DEPREFATED_API #define enabled to allow access to deprecated APIs ." OFF) # edit by akuan: ON -> OFF
 
 OPTION(OSG_USE_FLOAT_MATRIX "Set to ON to build OpenSceneGraph with float Matrix instead of double." OFF)
 MARK_AS_ADVANCED(OSG_USE_FLOAT_MATRIX)
@@ -485,10 +489,16 @@ OPTION(OSG_USE_REF_PTR_SAFE_DEREFERENCE "Set to ON to throw an exception wheneve
 
 OPTION(OSG_ENVVAR_SUPPORTED "Set to ON to build OpenSceneGraph with the #define OSG_ENVVAR_SUPPORTED, found in include/osg/Config, to enable use of getenv() related functions." ON)
 
-
-
 # Map the OPENGL_PROFILE to OSG_GL*_AVAILABLE settings
 SET(OPENGL_PROFILE "GL2" CACHE STRING "OpenGL Profile to use, choose from GL1, GL2, GL3, GLES1, GLES2, GLES3")
+
+# add by akuan begin >>>>>>
+IF (ANDROID OR (APPLE AND OSG_BUILD_PLATFORM_IPHONE))
+    SET(OPENGL_PROFILE "GLES3" CACHE STRING "OpenGL Profile set to GLES3 for embedded platform" FORCE)
+ELSE()
+    SET(OPENGL_PROFILE "GL3" CACHE STRING "OpenGL Profile set to GL3 for PC platform" FORCE)
+ENDIF()
+# add end
 
 IF ((OPENGL_PROFILE STREQUAL "GL1") OR (OPENGL_PROFILE STREQUAL "GL2"))
     OPTION(OSG_GL1_AVAILABLE "Set to OFF to disable use of OpenGL 1.x functions library." ON )
@@ -520,7 +530,8 @@ ENDIF()
 IF ((OPENGL_PROFILE STREQUAL "GLES2"))
     OPTION(OSG_GLES2_AVAILABLE "Set to OFF to disable use of OpenGL ES 2.x functions library." ON )
 ELSEIF ((OPENGL_PROFILE STREQUAL "GLES3"))
-    OPTION(OSG_GLES3_AVAILABLE "Set to OFF to disable use of OpenGL ES 3.x functions library." ON )
+    unset(OSG_GLES3_AVAILABLE CACHE) # add by akuan >>>>>> [clear cache value]
+    OPTION(OSG_GLES3_AVAILABLE "Set to OFF to disable use of OpenGL ES 3.x functions library." ON)
 ELSEIF ((OPENGL_PROFILE STREQUAL "GLES2+GLES3"))
     OPTION(OSG_GLES2_AVAILABLE "Set to OFF to disable use of OpenGL ES 2.x functions library." ON )
     OPTION(OSG_GLES3_AVAILABLE "Set to OFF to disable use of OpenGL ES 3.x functions library." ON )
@@ -528,7 +539,6 @@ ELSE()
     OPTION(OSG_GLES2_AVAILABLE "Set to OFF to disable use of OpenGL ES 2.x functions library." OFF )
     OPTION(OSG_GLES3_AVAILABLE "Set to OFF to disable use of OpenGL ES 3.x functions library." OFF )
 ENDIF()
-
 
 OPTION(OSG_GL_LIBRARY_STATIC "Set to ON to statically link with OpenGL/GLES library." OFF)
 
@@ -547,16 +557,16 @@ IF (OSG_GLES2_AVAILABLE OR OSG_GLES3_AVAILABLE OR OSG_GL3_AVAILABLE)
     OPTION(OSG_GL_FIXED_FUNCTION_AVAILABLE "Set to OFF to disable use of OpenGL fixed function pipeline." OFF)
 ELSEIF (OSG_GLES1_AVAILABLE)
     OPTION(OSG_GL_DISPLAYLISTS_AVAILABLE "Set to OFF to disable use of OpenGL display lists." OFF)
-    OPTION(OSG_GL_MATRICES_AVAILABLE "Set to OFF to disable use of OpenGL built-in matrices." ON)
-    OPTION(OSG_GL_VERTEX_FUNCS_AVAILABLE "Set to OFF to disable use of OpenGL vertex functions such as glVertex/glColor etc." ON)
-    OPTION(OSG_GL_VERTEX_ARRAY_FUNCS_AVAILABLE "Set to OFF to disable use of OpenGL vertex functions such as glVertexPointer/glColorPointer etc." ON)
-    OPTION(OSG_GL_FIXED_FUNCTION_AVAILABLE "Set to OFF to disable use of OpenGL fixed function pipeline." ON)
+    OPTION(OSG_GL_MATRICES_AVAILABLE "Set to OFF to disable use of OpenGL built-in matrices." OFF) # edit by akuan ON->OFF
+    OPTION(OSG_GL_VERTEX_FUNCS_AVAILABLE "Set to OFF to disable use of OpenGL vertex functions such as glVertex/glColor etc." OFF) # edit by akuan ON->OFF
+    OPTION(OSG_GL_VERTEX_ARRAY_FUNCS_AVAILABLE "Set to OFF to disable use of OpenGL vertex functions such as glVertexPointer/glColorPointer etc." OFF) # edit by akuan ON->OFF
+    OPTION(OSG_GL_FIXED_FUNCTION_AVAILABLE "Set to OFF to disable use of OpenGL fixed function pipeline." OFF) # edit by akuan ON->OFF
 ELSE()
-    OPTION(OSG_GL_DISPLAYLISTS_AVAILABLE "Set to OFF to disable use of OpenGL display lists." ON)
-    OPTION(OSG_GL_MATRICES_AVAILABLE "Set to OFF to disable use of OpenGL built-in matrices." ON)
-    OPTION(OSG_GL_VERTEX_FUNCS_AVAILABLE "Set to OFF to disable use of OpenGL vertex functions such as glVertex/glColor etc." ON)
-    OPTION(OSG_GL_VERTEX_ARRAY_FUNCS_AVAILABLE "Set to OFF to disable use of OpenGL vertex functions such as glVertexPointer/glColorPointer etc." ON)
-    OPTION(OSG_GL_FIXED_FUNCTION_AVAILABLE "Set to OFF to disable use of OpenGL fixed function pipeline." ON)
+    OPTION(OSG_GL_DISPLAYLISTS_AVAILABLE "Set to OFF to disable use of OpenGL display lists." OFF) # edit by akuan ON->OFF
+    OPTION(OSG_GL_MATRICES_AVAILABLE "Set to OFF to disable use of OpenGL built-in matrices." OFF) # edit by akuan ON->OFF
+    OPTION(OSG_GL_VERTEX_FUNCS_AVAILABLE "Set to OFF to disable use of OpenGL vertex functions such as glVertex/glColor etc." OFF) # edit by akuan ON->OFF
+    OPTION(OSG_GL_VERTEX_ARRAY_FUNCS_AVAILABLE "Set to OFF to disable use of OpenGL vertex functions such as glVertexPointer/glColorPointer etc." OFF) # edit by akuan ON->OFF
+    OPTION(OSG_GL_FIXED_FUNCTION_AVAILABLE "Set to OFF to disable use of OpenGL fixed function pipeline." OFF) # edit by akuan ON->OFF
 ENDIF()
 
 IF (OSG_GLES1_AVAILABLE OR OSG_GLES2_AVAILABLE OR OSG_GLES3_AVAILABLE)
@@ -567,10 +577,10 @@ ENDIF()
 
 
 # Map the OSG_GL*_AVAILABLE settings to OpenGL header settings
-SET(DEFAULT_GL_CONTEXT_VERSION "1.0")
+SET(DEFAULT_GL_CONTEXT_VERSION "3.2") # edit by akuan >>>>>> [change default value]
 IF (OSG_GL3_AVAILABLE)
 
-    SET(DEFAULT_GL_CONTEXT_VERSION "3.3")
+    SET(DEFAULT_GL_CONTEXT_VERSION "4.6") # edit by akuan >>>>>> [change default value]
 
     IF (APPLE)
         SET(OPENGL_HEADER1 "#include <OpenGL/gl.h>" CACHE STRING "#include<> line for OpenGL Header")
